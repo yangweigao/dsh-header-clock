@@ -68,6 +68,8 @@ return {
 
 验证：`dsh --profile web --dump-config | grep header-clock` 应能看到该条目。
 
+**临时禁用**（保留文件，随时恢复）：把 `cordis.patch.yml` 中 header-clock 条目的 `disabled` 改为 `true`，重启 DSH 即可；改回 `false` 并重启即恢复。**彻底卸载**：删除该 patch 条目并删除 `node_modules/header-clock/` 目录。
+
 ## 自定义
 
 样式与布局可在代码的 CSS 模板中调整：

@@ -1,0 +1,18 @@
+{
+  "name": "header-clock",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness header clock plugin: live date/time at top center of the page",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT"
+}

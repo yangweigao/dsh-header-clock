@@ -3,10 +3,12 @@
 > **DeepSeek Harness 插件** — 本仓库是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的第三方客户端插件，在 DSH 页面顶部居中动态显示当前日期与时间，每秒刷新。
 
 ```
-2025年01月15日 星期三 14:30:45
+2025年01月15日 星期三　14:30:45
 ```
 
-DSH 是一个基于 Cordis 的 AI 智能体运行时与 Web 界面（https://github.com/deepseek-ai/deepseek-harness）。本插件以 DSH 动态 Cordis 插件（Client 端）形式运行，通过其 `shell.overlay` 槽位注入 UI，无需修改 DSH 本体。
+DSH 是一个基于 Cordis 的 AI 智能体运行时与 Web 界面（https://github.com/deepseek-ai/deepseek-harness）。本插件以 DSH Cordis 插件（Client 端）形式运行，通过其 `shell.overlay` 槽位注入 UI，无需修改 DSH 本体。
+
+> 本仓库提供两种形态：`client.js`（动态插件，会话内加载）与 `static/`（静态持久化插件，随 DSH 启动自动加载）。
 
 ## 功能
 
@@ -27,7 +29,9 @@ DSH 是一个基于 Cordis 的 AI 智能体运行时与 Web 界面（https://git
 
 ## 在 DeepSeek Harness 中加载
 
-本插件是 **DSH 动态 Cordis 插件**，无需安装到 DSH 本体目录，在会话中直接加载：
+### 方式 A：动态插件（会话内，临时）
+
+无需安装到 DSH 本体目录，在会话中直接加载：
 
 1. 打开 DSH 会话，向模型提供本仓库的 `client.js`；
 2. 模型通过 `cordis_define` 注册动态插件（`code.client` 为 `client.js` 中 `apply` 的函数体）；
@@ -44,19 +48,39 @@ return {
 }
 ```
 
+> 注意：动态插件是进程级的，**DSH 重启后消失**，需要重新激活。
+
+### 方式 B：静态持久化插件（随 DSH 启动自动加载，推荐）
+
+把 `static/` 目录安装为 DSH profile 的本地插件包，**每次进入页面自动显示时钟**，刷新/重启都不消失：
+
+1. 将 `static/` 整个目录复制为 `<DSH_HOME>/profiles/web/node_modules/header-clock/`
+   （Windows 默认 `C:\Users\<用户名>\.dsh\profiles\web\node_modules\header-clock\`）
+2. 编辑 `<DSH_HOME>/profiles/web/cordis.patch.yml`，追加：
+
+   ```yaml
+   - insert:
+       - id: header-clock
+         name: header-clock
+   ```
+
+3. **重启 DSH 服务**（不是刷新浏览器——启动清单只在服务启动时构建），时钟即自动出现。
+
+验证：`dsh --profile web --dump-config | grep header-clock` 应能看到该条目。
+
 ## 自定义
 
-样式与布局可在 `styles.insert` 中调整：
+样式与布局可在代码的 CSS 模板中调整：
 
 | 参数 | 位置 | 默认值 |
 | --- | --- | --- |
 | 距顶部距离 | `.dsh-clock-wrap` → `top` | `20px` |
-| 水平偏移 | `.dsh-clock-wrap` → `transform: translate(x, y)` | `(35px, 5px)` |
+| 水平偏移 | `.dsh-clock-wrap` → `transform: translate(x, y)` | `(50px, 5px)` |
 | 字号 | `.dsh-header-clock` → `font-size` | `24px` |
 | 字体族 | `.dsh-header-clock` → `font-family` | 微软雅黑 / PingFang 优先 |
 | 文字颜色 | `.dsh-header-clock` → `color` | `--dsw-alias-label-primary` |
 
-日期格式与星期文案在组件内 `text` 模板字符串中修改。
+日期格式与星期文案在组件内 `text` 模板字符串中修改。改动后重启 DSH 服务生效。
 
 ## 共享与社区
 

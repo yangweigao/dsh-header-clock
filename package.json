@@ -5,6 +5,7 @@
   "main": "client.js",
   "files": [
     "client.js",
+    "static",
     "README.md"
   ],
   "keywords": [

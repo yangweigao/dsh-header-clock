@@ -1,10 +1,12 @@
 # dsh-header-clock
 
-DeepSeek Harness 头部时钟插件：在页面顶部居中动态显示当前日期与时间，每秒刷新。
+> **DeepSeek Harness 插件** — 本仓库是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的第三方客户端插件，在 DSH 页面顶部居中动态显示当前日期与时间，每秒刷新。
 
 ```
 2025年01月15日 星期三 14:30:45
 ```
+
+DSH 是一个基于 Cordis 的 AI 智能体运行时与 Web 界面（https://github.com/deepseek-ai/deepseek-harness）。本插件以 DSH 动态 Cordis 插件（Client 端）形式运行，通过其 `shell.overlay` 槽位注入 UI，无需修改 DSH 本体。
 
 ## 功能
 
@@ -24,6 +26,8 @@ DeepSeek Harness 头部时钟插件：在页面顶部居中动态显示当前日
 - 日期与时间合并为单个文本流，同一字体行高渲染，天然严格对齐
 
 ## 在 DeepSeek Harness 中加载
+
+本插件是 **DSH 动态 Cordis 插件**，无需安装到 DSH 本体目录，在会话中直接加载：
 
 1. 打开 DSH 会话，向模型提供本仓库的 `client.js`；
 2. 模型通过 `cordis_define` 注册动态插件（`code.client` 为 `client.js` 中 `apply` 的函数体）；
@@ -53,6 +57,12 @@ return {
 | 文字颜色 | `.dsh-header-clock` → `color` | `--dsw-alias-label-primary` |
 
 日期格式与星期文案在组件内 `text` 模板字符串中修改。
+
+## 共享与社区
+
+- 本插件以**公开仓库**形式共享给 DeepSeek Harness 社区，任何人可直接获取源码、自行加载或二次开发。
+- DSH 官方仓库：https://github.com/deepseek-ai/deepseek-harness —— 关于 DSH 本身的问题、需求与贡献请前往该仓库。
+- 本插件的功能建议、Bug 报告可通过本仓库的 Issues 提交，欢迎 Fork / PR。
 
 ## 许可证
 

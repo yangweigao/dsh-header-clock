@@ -32,7 +32,7 @@ module.exports = {
         right: 0;
         display: flex;
         justify-content: center;
-        transform: translate(35px, 5px);
+        transform: translate(40px, 5px);
         pointer-events: none;
       }
       .dsh-header-clock {

@@ -56,7 +56,10 @@ module.exports = {
             React.useEffect(() => ctx.interval(() => setNow(new Date()), 1000), [])
             const pad = (n) => String(n).padStart(2, '0')
             const weekdays = ['日', '一', '二', '三', '四', '五', '六']
-            const text = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 星期${weekdays[now.getDay()]} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+            const date = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 星期${weekdays[now.getDay()]}`
+            const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+            // 日期与时间之间使用全角空格分隔，空隙更明显
+            const text = `${date}　${time}`
             return React.createElement(
               'div',
               { className: 'dsh-clock-wrap' },

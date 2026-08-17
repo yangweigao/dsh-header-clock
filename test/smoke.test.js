@@ -25,17 +25,15 @@ const styleTags = []
 const document = {
   head: { appendChild: (t) => styleTags.push(t) },
   createElement: (n) => ({ tagName: n, dataset: {}, textContent: '' }),
-  querySelector: (sel) => styleTags.find((t) => sel.includes('header-clock') && t.textContent) || null,
+  querySelector: (sel) => {
+    // CSS 注入守卫需要命中 style 标签；DOM 查询（[data-shell-overlay]）返回 null → JS 对准走兜底路径
+    if (sel.startsWith('style[')) return styleTags.find((t) => sel.includes('header-clock') && t.textContent) || null
+    return null
+  },
 }
-// window mock：记录 resize 监听，供 JS 定位测试
-let resizeListener = null
-let removeCalls = 0
-global.window = {
-  innerWidth: 1024,
-  addEventListener: (ev, fn) => { if (ev === 'resize') resizeListener = fn },
-  removeEventListener: (ev) => { if (ev === 'resize') removeCalls += 1 },
-}
+global.window = { innerWidth: 1024, addEventListener: () => {}, removeEventListener: () => {} }
 global.document = document
+global.getComputedStyle = () => ({})
 
 // React mock：hook 按调用序复用（模拟真实 React），ref 返回可测量对象
 let injectedDate = null
@@ -121,13 +119,12 @@ check('星期映射 7 天', (() => {
 // ========== CSS 定位断言（纯 CSS：left 50% + translateX 回移） ==========
 ;(() => {
   const cssText = styleTags[0].textContent
-  check('CSS 使用 left: 50% 居中定位', cssText.includes('left: 50%'))
+  check('CSS 使用 left: 50% 兜底定位', cssText.includes('left: 50%'))
   check('CSS 使用 translateX 回移（含右移 50px）', cssText.includes('translateX(calc(-50% + 50px))'))
-  check('CSS 无 JS 定位残留（无 window.innerWidth）', !cssText.includes('window.innerWidth'))
-  // 渲染结构不含 style 定位属性
+  // 渲染：JS 对准在测试环境走兜底路径（无 DOM）→ left 保持 null → style.left undefined
   stateValues = []
   const inner = renderClock()
-  check('wrap 无内联 style（纯 CSS 定位）', inner.props.style === undefined, '实际: ' + JSON.stringify(inner.props.style))
+  check('wrap 有 style 且 left 为 undefined（CSS 兜底）', inner.props.style && inner.props.style.left === undefined, '实际: ' + JSON.stringify(inner.props.style))
 })()
 
 // ========== timer 清理 ==========

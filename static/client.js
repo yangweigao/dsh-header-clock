@@ -40,18 +40,30 @@ window.__ModuleLoader__.load({
       '  white-space: nowrap;',
       '  user-select: none;',
       '}',
+      '@media (max-width: 768px) {',
+      '  .dsh-header-clock { font-size: 16px; }',
+      '}',
+      '@media (max-width: 480px) {',
+      '  .dsh-header-clock { font-size: 12px; }',
+      '}',
     ].join('\n')
 
-    if (typeof document !== 'undefined' && document.querySelector('style[data-plugin-css="header-clock"]') === null) {
-      const tag = document.createElement('style')
-      tag.dataset.pluginCss = 'header-clock'
-      tag.textContent = css
-      document.head.appendChild(tag)
+    // 注入或更新样式：同一页面内重载时刷新内容，避免旧样式残留
+    if (typeof document !== 'undefined') {
+      let tag = document.querySelector('style[data-plugin-css="header-clock"]')
+      if (tag) {
+        tag.textContent = css
+      } else {
+        tag = document.createElement('style')
+        tag.dataset.pluginCss = 'header-clock'
+        tag.textContent = css
+        document.head.appendChild(tag)
+      }
     }
 
     function apply(ctx) {
       ctx.slots.inject('shell.overlay', () => ctx.slots.register(
-        { name: 'shell.overlay', id: 'clock', order: 0, label: 'Clock' },
+        { name: 'shell.overlay', id: 'header-clock', order: 0, label: 'Clock' },
         () => {
           const Clock = () => {
             const [now, setNow] = React.useState(() => new Date())

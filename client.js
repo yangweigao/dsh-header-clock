@@ -45,11 +45,17 @@ module.exports = {
         white-space: nowrap;
         user-select: none;
       }
+      @media (max-width: 768px) {
+        .dsh-header-clock { font-size: 16px; }
+      }
+      @media (max-width: 480px) {
+        .dsh-header-clock { font-size: 12px; }
+      }
     `)
 
     slots.inject('shell.overlay', () => {
       return slots.register(
-        { name: 'shell.overlay', id: 'clock', order: 0, label: 'Clock' },
+        { name: 'shell.overlay', id: 'header-clock', order: 0, label: 'Clock' },
         () => {
           const Clock = () => {
             const [now, setNow] = React.useState(() => new Date())

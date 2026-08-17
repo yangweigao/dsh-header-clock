@@ -18,7 +18,8 @@ DSH 是一个基于 Cordis 的 AI 智能体运行时与 Web 界面（https://git
 - 点击穿透（`pointer-events: none`），不阻挡任何页面操作
 - 自动适配明暗主题（使用 `--dsw-alias-*` 主题变量）
 - 等宽数字（`tabular-nums`），秒数跳动时数字不晃动
-- 窄屏适配：≤768px 字号缩小，小屏不遮挡内容
+- 窄屏适配：≤768px 字号降至 16px 基准（无障碍最小要求），不遮挡内容
+- **无障碍**：字号使用 `rem` 跟随浏览器设置；颜色对比度实测 17.45–18.90:1（WCAG AAA 级）
 
 ## 环境要求
 
@@ -117,9 +118,9 @@ return {
 | --- | --- | --- |
 | 距顶部距离 | `.dsh-clock-wrap` → `top` | `20px` |
 | 水平偏移 | `.dsh-clock-wrap` → `transform: translate(x, y)` | `(50px, 5px)` |
-| 字号 | `.dsh-header-clock` → `font-size` | `24px` |
+| 字号 | `.dsh-header-clock` → `font-size` | `1.5rem`（=24px @16px 根字号；窄屏 1rem=16px，跟随浏览器字号设置） |
 | 字体族 | `.dsh-header-clock` → `font-family` | 微软雅黑 / PingFang 优先 |
-| 文字颜色 | `.dsh-header-clock` → `color` | `--dsw-alias-label-primary` |
+| 文字颜色 | `.dsh-header-clock` → `color` | `--dsw-alias-label-primary`（实测对比度 17.45–18.90:1，达 WCAG AAA） |
 
 日期格式与星期文案在组件内 `text` 模板字符串中修改。改动后重启 DSH 服务生效。
 

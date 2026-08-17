@@ -118,26 +118,16 @@ check('星期映射 7 天', (() => {
   return Object.entries(map).every(([iso, w]) => renderAt(iso + 'T12:00:00').includes('星期' + w))
 })())
 
-// ========== JS 定位（resize 保持视口居中） ==========
+// ========== CSS 定位断言（纯 CSS：left 50% + translateX 回移） ==========
 ;(() => {
-  // 首次渲染（全新状态）：left 初始为 null（style.left = undefined）
+  const cssText = styleTags[0].textContent
+  check('CSS 使用 left: 50% 居中定位', cssText.includes('left: 50%'))
+  check('CSS 使用 translateX 回移（含右移 50px）', cssText.includes('translateX(calc(-50% + 50px))'))
+  check('CSS 无 JS 定位残留（无 window.innerWidth）', !cssText.includes('window.innerWidth'))
+  // 渲染结构不含 style 定位属性
   stateValues = []
-  const inner1 = renderClock()
-  check('首次渲染 wrap 无 left', inner1.props.style && inner1.props.style.left === undefined, '实际: ' + JSON.stringify(inner1.props.style))
-  // useEffect 注册了 resize 监听
-  check('注册了 resize 监听', typeof resizeListener === 'function')
-  // 触发 resize：width=400, innerWidth=1024 → left = 512 - 200 + 50 = 362
-  resizeListener()
-  const inner2 = renderClock()
-  check('resize 后 left 计算为视口居中', inner2.props.style && inner2.props.style.left === '362px', '实际: ' + inner2.props.style.left)
-  // 窗口变宽：innerWidth=2000 → left = 1000 - 200 + 50 = 850
-  global.window.innerWidth = 2000
-  resizeListener()
-  const inner3 = renderClock()
-  check('窗口变宽后重新居中', inner3.props.style.left === '850px', '实际: ' + inner3.props.style.left)
-  // 卸载时移除监听
-  effectCleanup()
-  check('卸载时移除 resize 监听', removeCalls >= 1)
+  const inner = renderClock()
+  check('wrap 无内联 style（纯 CSS 定位）', inner.props.style === undefined, '实际: ' + JSON.stringify(inner.props.style))
 })()
 
 // ========== timer 清理 ==========

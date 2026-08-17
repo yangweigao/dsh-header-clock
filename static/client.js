@@ -22,7 +22,7 @@ window.__ModuleLoader__.load({
     const css = [
       // 无绝对定位：时钟位于 overlay 容器正常文档流中，左上角 + 边距。
       '.dsh-clock-wrap {',
-      '  margin: 20px 0 0 20px;', // 距顶 20px、距左 20px
+      '  margin: 20px 0 0 200px;', // 距顶 20px、距左 200px
       '  pointer-events: none;',
       '}',
       '.dsh-header-clock {',

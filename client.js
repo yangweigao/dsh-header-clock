@@ -25,14 +25,15 @@ module.exports = {
     if (slots === undefined) return
 
     styles.insert(`
+      /* 全视口固定容器：fixed 生效时钉死浏览器视口（任何滚动/布局变化都不移动）；
+         若 fixed 在 overlay 结构下不可靠，则退化为容器顶部水平居中（不劣于旧行为）。 */
       .dsh-clock-wrap {
-        position: absolute;
-        top: 20px;
-        left: 0;
-        right: 0;
+        position: fixed;
+        inset: 0;
         display: flex;
         justify-content: center;
-        transform: translate(50px, 5px);
+        align-items: flex-start;
+        padding-top: 25px; /* 距顶 20px + 下移 5px */
         pointer-events: none;
       }
       .dsh-header-clock {
@@ -44,6 +45,7 @@ module.exports = {
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
         user-select: none;
+        transform: translateX(50px); /* 保持右移 50px */
       }
       /* 窄屏无障碍：最小 1rem（16px 正文基准） */
       @media (max-width: 768px) {

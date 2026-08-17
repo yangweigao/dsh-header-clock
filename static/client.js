@@ -20,8 +20,9 @@ window.__ModuleLoader__.load({
     const inject = ['slots', 'timer']
 
     const css = [
-      // 无绝对定位：时钟位于 overlay 容器正常文档流中，位置由容器布局决定。
+      // 无绝对定位：时钟位于 overlay 容器正常文档流中，左上角 + 边距。
       '.dsh-clock-wrap {',
+      '  margin: 20px 0 0 20px;', // 距顶 20px、距左 20px
       '  pointer-events: none;',
       '}',
       '.dsh-header-clock {',

@@ -25,13 +25,9 @@ module.exports = {
     if (slots === undefined) return
 
     styles.insert(`
-      /* 纯 CSS 定位：相对 overlay 容器（填满页面框架）水平居中 + 右移 50px。
-         不依赖 JS：任何渲染时刻（含重挂载首帧）位置都正确，无闪烁。 */
+      /* 无绝对定位：时钟位于 overlay 容器正常文档流中，左上角 + 边距。 */
       .dsh-clock-wrap {
-        position: absolute;
-        top: 25px; /* 距顶 20px + 下移 5px */
-        left: 50%;
-        transform: translateX(calc(-50% + 50px)); /* 回移自身一半宽度 + 右移 50px */
+        margin: 20px 0 0 20px; /* 距顶 20px、距左 20px */
         pointer-events: none;
       }
       .dsh-header-clock {

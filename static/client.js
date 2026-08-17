@@ -20,15 +20,11 @@ window.__ModuleLoader__.load({
     const inject = ['slots', 'timer']
 
     const css = [
-      // 全视口固定容器：fixed 生效时钉死浏览器视口（任何滚动/布局变化都不移动）；
-      // 若 fixed 在 overlay 结构下不可靠，则退化为容器顶部水平居中（不劣于旧行为）。
+      // 定位由 JS 计算（监听 resize，实时保持视口水平居中）：
+      // absolute 相对 overlay 容器（填满页面框架，已被证明可靠），left 由组件内计算。
       '.dsh-clock-wrap {',
-      '  position: fixed;',
-      '  inset: 0;',
-      '  display: flex;',
-      '  justify-content: center;',
-      '  align-items: flex-start;',
-      '  padding-top: 25px;', // 距顶 20px + 下移 5px
+      '  position: absolute;',
+      '  top: 25px;', // 距顶 20px + 下移 5px
       '  pointer-events: none;',
       '}',
       '.dsh-header-clock {',
@@ -40,7 +36,6 @@ window.__ModuleLoader__.load({
       '  font-variant-numeric: tabular-nums;',
       '  white-space: nowrap;',
       '  user-select: none;',
-      '  transform: translateX(50px);', // 保持右移 50px
       '}',
       // 窄屏无障碍：最小 1rem（16px，正文基准），低视力用户仍可读
       '@media (max-width: 768px) {',
@@ -70,16 +65,29 @@ window.__ModuleLoader__.load({
         () => {
           const Clock = () => {
             const [now, setNow] = React.useState(() => new Date())
+            const [left, setLeft] = React.useState(null)
+            const ref = React.useRef(null)
             React.useEffect(() => ctx.interval(() => setNow(new Date()), 1000), [])
+            // JS 定位：监听 resize，始终把时钟保持在浏览器视口水平中央（右移 50px）
+            React.useEffect(() => {
+              const update = () => {
+                const width = ref.current ? ref.current.offsetWidth : 0
+                setLeft(Math.round(window.innerWidth / 2 - width / 2 + 50))
+              }
+              update()
+              window.addEventListener('resize', update)
+              return () => window.removeEventListener('resize', update)
+            }, [])
             const pad = (n) => String(n).padStart(2, '0')
             const weekdays = ['日', '一', '二', '三', '四', '五', '六']
             const date = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 星期${weekdays[now.getDay()]}`
             const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
             const text = `${date}　${time}`
+            const style = { left: left === null ? undefined : left + 'px' }
             return React.createElement(
               'div',
-              { className: 'dsh-clock-wrap' },
-              React.createElement('span', { className: 'dsh-header-clock', title: '当前时间' }, text),
+              { className: 'dsh-clock-wrap', style },
+              React.createElement('span', { className: 'dsh-header-clock', title: '当前时间', ref }, text),
             )
           }
           return React.createElement(Clock)

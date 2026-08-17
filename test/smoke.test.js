@@ -27,18 +27,35 @@ const document = {
   createElement: (n) => ({ tagName: n, dataset: {}, textContent: '' }),
   querySelector: (sel) => styleTags.find((t) => sel.includes('header-clock') && t.textContent) || null,
 }
-global.window = {}
+// window mock：记录 resize 监听，供 JS 定位测试
+let resizeListener = null
+let removeCalls = 0
+global.window = {
+  innerWidth: 1024,
+  addEventListener: (ev, fn) => { if (ev === 'resize') resizeListener = fn },
+  removeEventListener: (ev) => { if (ev === 'resize') removeCalls += 1 },
+}
 global.document = document
 
+// React mock：hook 按调用序复用（模拟真实 React），ref 返回可测量对象
 let injectedDate = null
-let stateValue = null
+let stateValues = []
+let hookIndex = 0
 let effectCleanup = null
+const refMock = { current: { offsetWidth: 400 } }
 const React = {
   useState: (init) => {
-    if (stateValue === null) stateValue = injectedDate || (typeof init === 'function' ? init() : init)
-    return [stateValue, (v) => { stateValue = v }]
+    if (stateValues[hookIndex] === undefined) {
+      stateValues[hookIndex] = typeof init === 'function'
+        ? (hookIndex === 0 ? (injectedDate || init()) : init())
+        : init
+    }
+    const i = hookIndex
+    hookIndex += 1
+    return [stateValues[i], (v) => { stateValues[i] = v }]
   },
   useEffect: (fn) => { try { effectCleanup = fn() || null } catch {} },
+  useRef: () => refMock,
   createElement: (type, props, ...children) => ({ type, props, children }),
 }
 let intervalCb = null
@@ -50,6 +67,13 @@ const ctx = {
   },
   interval: (cb) => { intervalCb = cb; return () => {} },
   get: () => undefined,
+}
+
+// 渲染辅助：重置 hook 指针后渲染组件（保留 state，模拟真实 React 复用）
+function renderClock() {
+  hookIndex = 0
+  const el = componentFn()
+  return el.type() // 执行 Clock
 }
 
 // ========== 加载插件 ==========
@@ -79,8 +103,8 @@ check('slot id 为 header-clock（无冲突）', registerOpts && registerOpts.id
 // ========== 渲染与日期格式 ==========
 function renderAt(iso) {
   injectedDate = new Date(iso)
-  stateValue = null
-  const inner = componentFn().type()
+  stateValues = [] // 全新状态：注入测试日期
+  const inner = renderClock()
   const span = inner.children[0]
   return Array.isArray(span.children) ? span.children[0] : span.children
 }
@@ -94,19 +118,43 @@ check('星期映射 7 天', (() => {
   return Object.entries(map).every(([iso, w]) => renderAt(iso + 'T12:00:00').includes('星期' + w))
 })())
 
+// ========== JS 定位（resize 保持视口居中） ==========
+;(() => {
+  // 首次渲染（全新状态）：left 初始为 null（style.left = undefined）
+  stateValues = []
+  const inner1 = renderClock()
+  check('首次渲染 wrap 无 left', inner1.props.style && inner1.props.style.left === undefined, '实际: ' + JSON.stringify(inner1.props.style))
+  // useEffect 注册了 resize 监听
+  check('注册了 resize 监听', typeof resizeListener === 'function')
+  // 触发 resize：width=400, innerWidth=1024 → left = 512 - 200 + 50 = 362
+  resizeListener()
+  const inner2 = renderClock()
+  check('resize 后 left 计算为视口居中', inner2.props.style && inner2.props.style.left === '362px', '实际: ' + inner2.props.style.left)
+  // 窗口变宽：innerWidth=2000 → left = 1000 - 200 + 50 = 850
+  global.window.innerWidth = 2000
+  resizeListener()
+  const inner3 = renderClock()
+  check('窗口变宽后重新居中', inner3.props.style.left === '850px', '实际: ' + inner3.props.style.left)
+  // 卸载时移除监听
+  effectCleanup()
+  check('卸载时移除 resize 监听', removeCalls >= 1)
+})()
+
 // ========== timer 清理 ==========
 let disposed = 0
+let lastDisposer = null
 let cleanupRegister = null, cleanupComponent = null
-effectCleanup = null
 const cleanupCtx = {
   slots: { inject: (n, cb) => { cleanupRegister = cb }, register: (o, comp) => { cleanupComponent = comp } },
-  interval: () => () => { disposed += 1 },
+  interval: () => { lastDisposer = () => { disposed += 1 }; return lastDisposer },
 }
 loaded.apply(cleanupCtx)
 cleanupRegister()
-cleanupComponent().type() // 渲染 → useEffect → 注册 interval → disposer 存入 effectCleanup
+hookIndex = 0
+stateValues = []
+cleanupComponent().type() // 渲染 → useEffect → 注册 interval
 check('渲染时注册了 interval', typeof intervalCb === 'function')
-effectCleanup() // 卸载 → 调用 disposer
+lastDisposer() // 卸载 → 调用 disposer
 check('timer disposer 在卸载时被调用', disposed === 1)
 
 console.log(`\n${fail === 0 ? '✓ 全部通过' : `✗ ${fail} 项失败`}（共 ${total.length} 项）`)

@@ -27,7 +27,7 @@ module.exports = {
     styles.insert(`
       /* 无绝对定位：时钟位于 overlay 容器正常文档流中，左上角 + 边距。 */
       .dsh-clock-wrap {
-        margin: 20px 0 0 200px; /* 距顶 20px、距左 200px */
+        margin: 20px 0 0 300px; /* 距顶 20px、距左 300px */
         pointer-events: none;
       }
       .dsh-header-clock {

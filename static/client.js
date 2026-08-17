@@ -69,6 +69,7 @@ window.__ModuleLoader__.load({
           const Clock = () => {
             const [now, setNow] = React.useState(() => new Date())
             const [left, setLeft] = React.useState(null)
+            const [top, setTop] = React.useState(null)
             React.useEffect(() => ctx.interval(() => setNow(new Date()), 1000), [])
             // 对准内容区（center 列）头部中央：测量 overlay 层兄弟中 grid 第 2 列的几何，
             // left = 列中央（transform translateX(-50%) 负责回移自身一半宽度）。
@@ -110,12 +111,38 @@ window.__ModuleLoader__.load({
                 try { if (observer) observer.disconnect() } catch (e) {}
               }
             }, [])
+            // 与"创造模式"状态条保持 10px 距离：每秒扫描文本含"创造/创意"的元素，
+            // 时钟 top = 该元素底部 + 10px（相对 overlay 容器）。找不到时保持 CSS 兜底。
+            React.useEffect(() => {
+              const scan = () => {
+                try {
+                  const layer = document.querySelector('[data-shell-overlay]')
+                  if (!layer) return
+                  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+                  let node = null
+                  let target = null
+                  while ((node = walker.nextNode())) {
+                    const t = (node.textContent || '').trim()
+                    if (/创造|创意/.test(t) && t.length < 50) {
+                      target = node.parentElement
+                      break
+                    }
+                  }
+                  if (!target) return
+                  const r = target.getBoundingClientRect()
+                  const lr = layer.getBoundingClientRect()
+                  setTop(Math.round(r.bottom - lr.top + 10))
+                } catch (e) {}
+              }
+              scan()
+              return ctx.interval(scan, 1000)
+            }, [])
             const pad = (n) => String(n).padStart(2, '0')
             const weekdays = ['日', '一', '二', '三', '四', '五', '六']
             const date = `${now.getFullYear()}年${pad(now.getMonth() + 1)}月${pad(now.getDate())}日 星期${weekdays[now.getDay()]}`
             const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
             const text = `${date}　${time}`
-            const style = { left: left === null ? undefined : left + 'px' }
+            const style = { left: left === null ? undefined : left + 'px', top: top === null ? undefined : top + 'px' }
             return React.createElement(
               'div',
               { className: 'dsh-clock-wrap', style },

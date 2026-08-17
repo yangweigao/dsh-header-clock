@@ -33,18 +33,19 @@ window.__ModuleLoader__.load({
       '.dsh-header-clock {',
       '  display: inline-block;',
       "  font-family: 'Microsoft YaHei', 'PingFang SC', 'Segoe UI', system-ui, sans-serif;",
-      '  font-size: 24px;',
+      '  font-size: 1.5rem;', // 24px（16px 根字号），跟随浏览器字号设置，视障用户调大字号时自动放大
       '  line-height: 1.4;',
       '  color: var(--dsw-alias-label-primary, rgba(255, 255, 255, 0.92));',
       '  font-variant-numeric: tabular-nums;',
       '  white-space: nowrap;',
       '  user-select: none;',
       '}',
+      // 窄屏无障碍：最小 1rem（16px，正文基准），低视力用户仍可读
       '@media (max-width: 768px) {',
-      '  .dsh-header-clock { font-size: 16px; }',
+      '  .dsh-header-clock { font-size: 1rem; }',
       '}',
       '@media (max-width: 480px) {',
-      '  .dsh-header-clock { font-size: 12px; }',
+      '  .dsh-header-clock { font-size: 1rem; }',
       '}',
     ].join('\n')
 

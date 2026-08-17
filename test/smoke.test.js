@@ -116,15 +116,17 @@ check('星期映射 7 天', (() => {
   return Object.entries(map).every(([iso, w]) => renderAt(iso + 'T12:00:00').includes('星期' + w))
 })())
 
-// ========== CSS 定位断言（无绝对定位：文档流） ==========
+// ========== CSS 定位断言（绝对定位 + 内容区对准） ==========
 ;(() => {
   const cssText = styleTags[0].textContent
-  check('CSS 无绝对定位（无 position: absolute）', !cssText.includes('position: absolute'))
-  check('CSS 含点击穿透', cssText.includes('pointer-events: none'))
-  // 渲染：无绝对定位 → wrap 无内联定位样式
+  check('CSS 使用绝对定位', cssText.includes('position: absolute'))
+  check('CSS 距顶 20px（内容区头部）', cssText.includes('top: 20px'))
+  check('CSS left: 50% 兜底', cssText.includes('left: 50%'))
+  check('CSS translateX 回移', cssText.includes('translateX(-50%)'))
+  // 渲染：JS 对准在测试环境走兜底路径（无 DOM）→ left 保持 null → style.left undefined
   stateValues = []
   const inner = renderClock()
-  check('wrap 无内联定位样式（纯文档流）', inner.props.style === undefined, '实际: ' + JSON.stringify(inner.props.style))
+  check('wrap style.left 为 undefined（CSS 兜底）', inner.props.style && inner.props.style.left === undefined, '实际: ' + JSON.stringify(inner.props.style))
 })()
 
 // ========== timer 清理 ==========

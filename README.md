@@ -1,7 +1,5 @@
 # dsh-header-clock
 
-> **🔒 ARCHIVED** — 个人练习项目，已完成其学习使命，不再继续开发。代码保留供参考，可自行 Fork 使用。
-
 > **DeepSeek Harness 插件** — 本仓库是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的第三方客户端插件，在 DSH 页面顶部居中动态显示当前日期与时间，每秒刷新。
 
 ```
@@ -88,8 +86,9 @@ return {
 
 ## 共享与社区
 
-- 本仓库**已归档**：这是一个个人练习项目（作者用于学习 DSH 插件开发的完整流程），不再维护。代码以 MIT 协议公开，欢迎 Fork 自用或二次开发。
+- 本插件以**公开仓库**形式共享给 DeepSeek Harness 社区，代码以 MIT 协议公开，欢迎 Fork 自用、二次开发或提交改进。
 - DSH 官方仓库：https://github.com/deepseek-ai/deepseek-harness —— 关于 DSH 本身的问题、需求与贡献请前往该仓库。
+- 功能建议、Bug 报告可通过本仓库的 Issues 提交，欢迎 PR。
 
 ## 许可证
 

@@ -62,52 +62,12 @@ module.exports = {
           const Clock = () => {
             const [now, setNow] = React.useState(() => new Date())
             const [left, setLeft] = React.useState(null)
-            const [top, setTop] = React.useState(null)
+            const ref = React.useRef(null)
             React.useEffect(() => ctx.interval(() => setNow(new Date()), 1000), [])
-            // 对准内容区（center 列）头部中央：测量 overlay 层兄弟中 grid 第 2 列的几何，
-            // left = 列中央（transform translateX(-50%) 负责回移自身一半宽度）。
-            // CSS left:50% 作为首帧兜底；ResizeObserver 跟踪侧边栏拖拽/列宽变化。
-            React.useEffect(() => {
-              let observer = null
-              const update = () => {
-                try {
-                  const layer = document.querySelector('[data-shell-overlay]')
-                  if (!layer) return
-                  const frame = layer.parentElement
-                  const center = [...frame.children].find(
-                    (c) => c !== layer && getComputedStyle(c).gridColumnStart === '2',
-                  )
-                  if (!center) return
-                  const cr = center.getBoundingClientRect()
-                  setLeft(Math.round(cr.left + cr.width / 2))
-                } catch (e) {}
-              }
-              try {
-                update()
-                window.addEventListener('resize', update)
-                if (typeof ResizeObserver !== 'undefined') {
-                  const layer = document.querySelector('[data-shell-overlay]')
-                  if (layer) {
-                    const frame = layer.parentElement
-                    const center = [...frame.children].find(
-                      (c) => c !== layer && getComputedStyle(c).gridColumnStart === '2',
-                    )
-                    if (center) {
-                      observer = new ResizeObserver(update)
-                      observer.observe(center)
-                    }
-                  }
-                }
-              } catch (e) {}
-              return () => {
-                try { window.removeEventListener('resize', update) } catch (e) {}
-                try { if (observer) observer.disconnect() } catch (e) {}
-              }
-            }, [])
-            // 与"创造模式"状态条保持 10px 距离：每秒扫描文本含"创造/创意"的元素，
-            // 时钟 top = 该元素底部 + 10px（相对 overlay 容器）。找不到时保持 CSS 兜底。
-            // 稳定性三措施：跳过滚动容器内的文本（排除聊天内容误匹配）、
-            // 锁定首次匹配的元素（不随扫描更换目标）、平滑过渡（CSS transition）。
+            // 与"页面状态显示区域"保持左边距 10px（时钟在它右侧 10px）：
+            // 每秒扫描文本含"创造/创意"的元素，left = 区域右边缘 + 10 + 自身宽一半
+            // （transform translateX(-50%) 回移宽度一半，使实际左边缘 = 区域右边缘 + 10）。
+            // 顶部外边距固定 20px（CSS）。稳定性：跳过滚动容器文本、锁定目标、平滑过渡。
             React.useEffect(() => {
               let locked = null
               const inScrollable = (el) => {
@@ -140,7 +100,8 @@ module.exports = {
                   if (!target) return
                   const r = target.getBoundingClientRect()
                   const lr = layer.getBoundingClientRect()
-                  setTop(Math.round(r.bottom - lr.top + 10))
+                  const width = ref.current ? ref.current.offsetWidth : 0
+                  setLeft(Math.round(r.right - lr.left + 10 + width / 2))
                 } catch (e) {}
               }
               scan()
@@ -152,11 +113,11 @@ module.exports = {
             const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
             // 日期与时间之间使用全角空格分隔，空隙更明显
             const text = `${date}　${time}`
-            const style = { left: left === null ? undefined : left + 'px', top: top === null ? undefined : top + 'px' }
+            const style = { left: left === null ? undefined : left + 'px' }
             return React.createElement(
               'div',
               { className: 'dsh-clock-wrap', style },
-              React.createElement('span', { className: 'dsh-header-clock', title: '当前时间' }, text),
+              React.createElement('span', { className: 'dsh-header-clock', title: '当前时间', ref }, text),
             )
           }
           return React.createElement(Clock)

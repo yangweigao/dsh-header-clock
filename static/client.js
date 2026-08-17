@@ -25,9 +25,10 @@ window.__ModuleLoader__.load({
       // CSS left:50% + translateX(-50%) 作为首帧兜底（无闪烁）。
       '.dsh-clock-wrap {',
       '  position: absolute;',
-      '  top: 20px;', // 内容区头部
+      '  top: 20px;', // 内容区头部（兜底）
       '  left: 50%;',
       '  transform: translateX(-50%);', // 回移自身一半宽度
+      '  transition: top 0.25s ease, left 0.25s ease;', // 位置变化平滑过渡，避免跳变闪烁
       '  pointer-events: none;',
       '}',
       '.dsh-header-clock {',
@@ -113,20 +114,36 @@ window.__ModuleLoader__.load({
             }, [])
             // 与"创造模式"状态条保持 10px 距离：每秒扫描文本含"创造/创意"的元素，
             // 时钟 top = 该元素底部 + 10px（相对 overlay 容器）。找不到时保持 CSS 兜底。
+            // 稳定性三措施：跳过滚动容器内的文本（排除聊天内容误匹配）、
+            // 锁定首次匹配的元素（不随扫描更换目标）、平滑过渡（CSS transition）。
             React.useEffect(() => {
+              let locked = null
+              const inScrollable = (el) => {
+                let cur = el
+                while (cur && cur !== document.body) {
+                  const s = getComputedStyle(cur)
+                  if (/(auto|scroll)/.test(s.overflowY) && cur.scrollTop > 0) return true
+                  cur = cur.parentElement
+                }
+                return false
+              }
               const scan = () => {
                 try {
                   const layer = document.querySelector('[data-shell-overlay]')
                   if (!layer) return
-                  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
-                  let node = null
-                  let target = null
-                  while ((node = walker.nextNode())) {
-                    const t = (node.textContent || '').trim()
-                    if (/创造|创意/.test(t) && t.length < 50) {
-                      target = node.parentElement
-                      break
+                  let target = locked && document.contains(locked) ? locked : null
+                  if (!target) {
+                    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+                    let node = null
+                    while ((node = walker.nextNode())) {
+                      const t = (node.textContent || '').trim()
+                      const el = node.parentElement
+                      if (/创造模式|创意模式|创造|创意/.test(t) && t.length < 20 && el && !inScrollable(el)) {
+                        target = el
+                        break
+                      }
                     }
+                    locked = target
                   }
                   if (!target) return
                   const r = target.getBoundingClientRect()
